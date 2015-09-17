@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/bluuuuer/Project/Opencv/machine_learning/linear_regression.cpp
+stdio.h
+-
+fstream
+-
+iostream
+-
+opencv2/opencv.hpp
+-
+string
+-
+

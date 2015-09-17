@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project(LinearRegression)
+find_package(OpenCV REQUIRED)
+add_executable(LinearRegression linear_regression.cpp)
+target_link_libraries(LinearRegression ${OpenCV_LIBS})
