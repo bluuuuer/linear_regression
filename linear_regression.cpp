@@ -37,11 +37,11 @@ void plot(Mat & image){
 	t_150_0.x = 350;
 	t_200_0.x = 450;
 	t_250_0.x = 550;
-	putText(image,"5O",t_50_0,1,1,255);
-	putText(image,"10O",t_100_0,1,1,255);
-	putText(image,"15O",t_150_0,1,1,255);
-	putText(image,"20O",t_200_0,1,1,255);
-	putText(image,"25O",t_250_0,1,1,255);
+	putText(image,"10O",t_50_0,1,1,255);
+	putText(image,"20O",t_100_0,1,1,255);
+	putText(image,"30O",t_150_0,1,1,255);
+	putText(image,"40O",t_200_0,1,1,255);
+	putText(image,"50O",t_250_0,1,1,255);
 	line(image,Point(150,550),Point(150,545),255,1,LINE_AA);
 	line(image,Point(250,550),Point(250,545),255,1,LINE_AA);
 	line(image,Point(350,550),Point(350,545),255,1,LINE_AA);
@@ -67,18 +67,22 @@ void plot(Mat & image){
 	line(image,Point(50,50),Point(60,50),255,1,LINE_AA);
 }
 
-void point(Mat& image,float x,float y){
+void DrawPoint(Mat& image,float x,float y){
 	Point center;
-	center.x = x * 2 + 50;
+	center.x = x + 50;
 	center.y = 550 - y / 2;
 	circle(image,center,1,255,1,LINE_AA);
 
 }
 
-float J_theta(float* theta,float* x,float* y,int num){
+float h_theta_x(float* theta,float (*x)[50],int i){
+    return theta[0]+theta[1]*x[0][i]+theta[2]*x[1][i]+theta[3]*x[2][i]+theta[4]*x[3][i];
+}
+
+float J_theta(float* theta,float (*x)[50],float* y,int num){
     float sum = 0.0;
     for(int i = 0;i < num;i ++)
-        sum+=(theta[0]+theta[1]*x[i]-y[i])*(theta[0]+theta[1]*x[i]-y[i]);
+        sum += (h_theta_x(theta,x,i) - y[i]) * (h_theta_x(theta,x,i) - y[i]);
     return sum / 2;
 }
 
@@ -102,71 +106,102 @@ int main(int argc,char ** argv){
 
 	string data[51];
 	int i = 0;
-	float y[50],x[50];
+	float y[50],x[4][50];
 	int idex = 0;
 	int _idex = 0;
 	int num = 0;
-	float temp_x = 0;
-	float temp_y = 0;
-	int k;
+	float temp_x[4] = {0.0,0.0,0.0,0.0};
+	float temp_y = 0.0;
+    int k = 0;
 	while(getline(file,data[i])){
-//		cout << data[i] << endl;
+		cout << data[i] << endl;
 		idex = data[i].find_first_of(",",0);
 		if(idex == -1)
 			return -1;
 		temp_y = atof(data[i].substr(0,idex).c_str());
 //		cout<<data[i].substr(0,idex)<<endl;
+
 		_idex = data[i].find_first_of(",",idex + 1);
 		if(_idex == -1)
 			return -1;
-		temp_x = atof(data[i].substr(idex + 1,_idex - idex - 1).c_str());
+		temp_x[0] = atof(data[i].substr(idex + 1,_idex - idex - 1).c_str());
 //		cout<<data[i].substr(idex+1,_idex-idex-1)<<endl;
-//		cout << y[i] << "\t" << x[i] <<endl;
-		for(k = 0;k < num;k ++)
-			if(temp_y == y[k] && temp_x == x[k])
-				break;
-		if(k == num){
+
+		idex = data[i].find_first_of(",",_idex + 1);
+		if(idex == -1)
+			return -1;
+		temp_x[1] = atof(data[i].substr(_idex + 1,idex - _idex - 1).c_str());
+//		cout<<data[i].substr(_idex+1,idex-_idex-1)<<endl;
+
+		_idex = data[i].find_first_of(",",idex + 1);
+		if(_idex == -1)
+			return -1;
+		temp_x[2] = atof(data[i].substr(idex + 1,_idex - idex - 1).c_str());
+ //       cout<<data[i].substr(idex+1,_idex-idex-1)<<endl;
+
+		temp_x[3] = atof(data[i].substr(_idex + 1).c_str());
+//		cout<<data[i].substr(_idex+1)<<endl;
+
+//		for(k = 0;k < num;k ++)
+//			if(temp_y == y[k]&&temp_x[0]==x[0][k]&&temp_x[1]==x[1][k]&&temp_x[2]==x[2][k]&&temp_x[3]==x[3][k])
+//				break;
+//		if(k == num){
 			y[num] = temp_y / 100;
-			x[num++] = temp_x / 100;
-		}
-		i ++;
-	}
+            for(int j = 0;j < 4;j ++){
+			    x[j][num] = temp_x[j] / 100;
+           }
+//		}
+        cout<<y[num]<<"\t"<<x[0][num]<<"\t"<<x[1][num]<<"\t"<<x[2][num]<<"\t"<<x[3][num]<<endl;
+	    num ++;
+        i ++;
+    }
 	file.close();
 //	cout << num <<endl;
 
 	namedWindow("Coordinate");
 	Mat coord = Mat::zeros(600,600,CV_8UC1);
 	plot(coord);
-	for(int j = 0;j < num;j ++){
+/*	for(int j = 0;j < num;j ++){
 	cout << y[j] << "\t" << x[j] <<endl;
 		point(coord,x[j] * 100,y[j] * 100);
-	}
+	}*/
 
-	cout << "num = " << num <<endl;
-    float theta[2];
+//	cout << "num = " << num <<endl;
+    float theta[5] = {0.0,0.0,0.0,0.0,0.0};
     float alpha = atof(argv[1]);
-    theta[0] = 0.0;
-    theta[1] = 0.0;
-    float temp1 = 0.0;
-    float temp2 = 0.0;
-    i = 0;
+    float temp[5] = {0.0,0.0,0.0,0.0,0.0};
+    i = 0;k = 0;
+//    float* p = &(x[0][0]);
     float tempJ = 0.0;
     while((J_theta(theta,x,y,num) - tempJ) > atof(argv[2]) || (tempJ - J_theta(theta,x,y,num) > atof(argv[2]))){
         tempJ = J_theta(theta,x,y,num);
         cout << "J=" << tempJ << endl;
-        temp1 = alpha * (theta[0] + theta[1] * x[i] - y[i]);
-        temp2 = alpha * (theta[0] + theta[1] * x[i] - y[i]) * x[i];
-        theta[0] -= temp1;
-        theta[1] -= temp2;
-        cout << "(" <<theta[0]<<"\t"<<theta[1]<<")"<<endl;
-        i ++;
-        if(i == num)
-            i = 0;
+        for(int j = 0;j < 3;j ++){
+            if(i+j >= num)
+                i -= num;
+            temp[0] += alpha * (h_theta_x(theta,x,i+j)- y[i+j]);
+            temp[1] += alpha * (h_theta_x(theta,x,i+j)- y[i+j]) * x[0][i+j];
+            temp[2] += alpha * (h_theta_x(theta,x,i+j)- y[i+j]) * x[1][i+j];
+            temp[3] += alpha * (h_theta_x(theta,x,i+j)- y[i+j]) * x[2][i+j];
+            temp[4] += alpha * (h_theta_x(theta,x,i+j)- y[i+j]) * x[3][i+j];
+        }
+        for(int j = 0;j < 5;j ++){
+            theta[j] -= temp[j] / 3;
+            temp[j] = 0.0;
+            cout << theta[j] << "    ";
+        }
+        cout<<endl;
+        i += 3;
+        if(i >= num)
+            i -=  num;
         //DrawLine(coord,theta);
+        DrawPoint(coord,k,tempJ);
+        k ++;
     }
+    cout << k<< endl;
 
-    DrawLine(coord,theta);
-    //imshow("Coordinate",coord);
+   // DrawLine(coord,theta);
+    imshow("Coordinate",coord);
 	waitKey();
 	return 0;
 }
